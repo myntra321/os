@@ -1,0 +1,108 @@
+The Banker's Algorithm is a resource allocation and deadlock avoidance technique used by operating systems to ensure that processes requesting resources won't lead to a situation where they get stuck in a deadlock. In simple terms, it helps the operating system manage resources so that all processes can make progress without getting into a deadlock situation.
+
+Here's a straightforward explanation:
+
+The system keeps track of available resources and the maximum resources each process can request.
+
+When a process wants to request resources, the system checks if providing these resources won't lead to a situation where no process can finish its work due to resource shortages (i.e., a deadlock).
+
+If the requested resources won't cause a deadlock, they are allocated to the process. Otherwise, the request is delayed until it can be safely granted.
+
+The Banker's Algorithm is like a cautious banker who ensures that they always have enough money to pay back all their customers, without running out of funds and getting into financial trouble. Similarly, the algorithm ensures that processes get the resources they need without causing the system to become stuck in a deadlock.
+
+
+
+#include <stdio.h>
+
+int main() {
+    int processes, resources;
+
+    printf("Enter the number of processes: ");
+    scanf("%d", &processes);
+
+    printf("Enter the number of resources: ");
+    scanf("%d", &resources);
+
+    int allocation[processes][resources];
+    int max[processes][resources];
+    int need[processes][resources];
+    int available[resources];
+    int finish[processes];
+
+    // Input allocation and max matrices
+    printf("Enter the allocation matrix:\n");
+    for (int i = 0; i < processes; i++) {
+        for (int j = 0; j < resources; j++) {
+            scanf("%d", &allocation[i][j]);
+        }
+    }
+
+    printf("Enter the max matrix:\n");
+    for (int i = 0; i < processes; i++) {
+        for (int j = 0; j < resources; j++) {
+            scanf("%d", &max[i][j]);
+        }
+    }
+
+    // Input available resources
+    printf("Enter the available resources:\n");
+    for (int j = 0; j < resources; j++) {
+        scanf("%d", &available[j]);
+    }
+
+    // Initialize finish array to all 0s
+    for (int i = 0; i < processes; i++) {
+        finish[i] = 0;
+    }
+
+    // Calculate the need matrix
+    for (int i = 0; i < processes; i++) {
+        for (int j = 0; j < resources; j++) {
+            need[i][j] = max[i][j] - allocation[i][j];
+        }
+    }
+
+    // Check for a safe sequence
+    int safeSequence[processes];
+    int safeCount = 0;
+
+    int work[resources];
+    for (int j = 0; j < resources; j++) {
+        work[j] = available[j];
+    }
+
+    for (int k = 0; k < processes; k++) {
+        for (int i = 0; i < processes; i++) {
+            if (finish[i] == 0) {
+                int flag = 1;
+                for (int j = 0; j < resources; j++) {
+                    if (need[i][j] > work[j]) {
+                        flag = 0;
+                        break;
+                    }
+                }
+
+                if (flag) {
+                    safeSequence[safeCount] = i;
+                    safeCount++;
+                    finish[i] = 1;
+
+                    for (int j = 0; j < resources; j++) {
+                        work[j] += allocation[i][j];
+                    }
+                }
+            }
+        }
+    }
+
+    if (safeCount == processes) {
+        printf("Safe Sequence: ");
+        for (int i = 0; i < processes; i++) {
+            printf("%d%s", safeSequence[i], (i < processes - 1) ? " -> " : "\n");
+        }
+    } else {
+        printf("No safe sequence found. System is in an unsafe state.\n");
+    }
+
+    return 0;
+}

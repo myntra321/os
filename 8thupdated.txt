@@ -1,0 +1,89 @@
+#include <stdio.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+
+#define BUFFER_SIZE 5
+#define NUM_PRODUCERS 2
+#define NUM_CONSUMERS 3
+#define NUM_ITEMS 10
+
+pthread_mutex_t mutex;
+sem_t empty, full;
+int buffer[BUFFER_SIZE];
+int in = 0, out = 0;
+
+void* producer(void* id) {
+    int producer_id = *(int*)id;
+    for (int i = 0; i < NUM_ITEMS; i++) {
+        sleep(1);
+        int item = (producer_id * NUM_ITEMS) + i;
+
+        sem_wait(&empty);
+        pthread_mutex_lock(&mutex);
+
+        buffer[in] = item;
+        in = (in + 1) % BUFFER_SIZE;
+
+        printf("Producer %d produced item: %d\n", producer_id, item);
+
+        pthread_mutex_unlock(&mutex);
+        sem_post(&full);
+    }
+    return NULL;
+}
+
+void* consumer(void* id) {
+    int consumer_id = *(int*)id;
+    for (int i = 0; i < NUM_ITEMS; i++) {
+        sleep(1);
+
+        sem_wait(&full);
+        pthread_mutex_lock(&mutex);
+
+        int item = buffer[out];
+        out = (out + 1) % BUFFER_SIZE;
+
+        printf("Consumer %d consumed item: %d\n", consumer_id, item);
+
+        pthread_mutex_unlock(&mutex);
+        sem_post(&empty);
+    }
+    return NULL;
+}
+
+int main() {
+    pthread_t producers[NUM_PRODUCERS];
+    pthread_t consumers[NUM_CONSUMERS];
+
+    int producer_ids[NUM_PRODUCERS];
+    int consumer_ids[NUM_CONSUMERS];
+
+    pthread_mutex_init(&mutex, NULL);
+    sem_init(&empty, 0, BUFFER_SIZE);
+    sem_init(&full, 0, 0);
+
+    for (int i = 0; i < NUM_PRODUCERS; i++) {
+        producer_ids[i] = i;
+        pthread_create(&producers[i], NULL, producer, &producer_ids[i]);
+    }
+
+    for (int i = 0; i < NUM_CONSUMERS; i++) {
+        consumer_ids[i] = i;
+        pthread_create(&consumers[i], NULL, consumer, &consumer_ids[i]);
+    }
+
+    for (int i = 0; i < NUM_PRODUCERS; i++) {
+        pthread_join(producers[i], NULL);
+    }
+
+    for (int i = 0; i < NUM_CONSUMERS; i++) {
+        pthread_join(consumers[i], NULL);
+    }
+
+    pthread_mutex_destroy(&mutex);
+    sem_destroy(&empty);
+    sem_destroy(&full);
+
+    return 0;
+}

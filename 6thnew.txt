@@ -1,0 +1,137 @@
+#include <stdio.h>
+#include <stdbool.h>
+
+bool isPageInFrames(int frames[], int frameSize, int page) {
+    for (int i = 0; i < frameSize; i++) {
+        if (frames[i] == page) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void displayFrames(int frames[], int frameSize) {
+    for (int i = 0; i < frameSize; i++) {
+        printf("%2d ", frames[i]);
+    }
+    printf(" | ");
+}
+
+void FCFS(int pages[], int n, int frames[], int frameSize) {
+    int pageFaults = 0;
+    int currentIndex = 0;
+
+    printf("FCFS Page Replacement:\n");
+
+    for (int i = 0; i < n; i++) {
+        int page = pages[i];
+
+        if (!isPageInFrames(frames, frameSize, page)) {
+            frames[currentIndex] = page;
+            currentIndex = (currentIndex + 1) % frameSize;
+            pageFaults++;
+        }
+
+        displayFrames(frames, frameSize);
+    }
+
+    printf("\nTotal Page Faults (FCFS): %d\n", pageFaults);
+}
+
+void LRU(int pages[], int n, int frames[], int frameSize) {
+    int pageFaults = 0;
+    int currentIndex = 0;
+    int reference[100] = {0};
+
+    printf("LRU Page Replacement:\n");
+
+    for (int i = 0; i < n; i++) {
+        int page = pages[i];
+        reference[currentIndex] = page;
+        currentIndex = (currentIndex + 1) % frameSize;
+
+        if (!isPageInFrames(frames, frameSize, page)) {
+            int lruIndex = 0;
+            int minReference = reference[lruIndex];
+
+            for (int j = 1; j < frameSize; j++) {
+                if (reference[j] < minReference) {
+                    lruIndex = j;
+                    minReference = reference[j];
+                }
+            }
+
+            frames[lruIndex] = page;
+            pageFaults++;
+        }
+
+        displayFrames(frames, frameSize);
+    }
+
+    printf("\nTotal Page Faults (LRU): %d\n", pageFaults);
+}
+
+void Optimal(int pages[], int n, int frames[], int frameSize) {
+    int pageFaults = 0;
+
+    printf("Optimal Page Replacement:\n");
+
+    for (int i = 0; i < n; i++) {
+        int page = pages[i];
+
+        if (!isPageInFrames(frames, frameSize, page)) {
+            int optimalIndex = -1;
+            int farthestDistance = -1;
+
+            for (int j = 0; j < frameSize; j++) {
+                int futureIndex = i;
+                while (futureIndex < n && pages[futureIndex] != frames[j]) {
+                    futureIndex++;
+                }
+
+                if (futureIndex >= n) {
+                    optimalIndex = j;
+                    break;
+                } else {
+                    if (futureIndex > farthestDistance) {
+                        farthestDistance = futureIndex;
+                        optimalIndex = j;
+                    }
+                }
+            }
+
+            frames[optimalIndex] = page;
+            pageFaults++;
+        }
+
+        displayFrames(frames, frameSize);
+    }
+
+    printf("\nTotal Page Faults (Optimal): %d\n", pageFaults);
+}
+
+int main() {
+    int n, pages[100], frameSize;
+
+    printf("Enter the number of pages: ");
+    scanf("%d", &n);
+
+    printf("Enter the page reference string: ");
+    for (int i = 0; i < n; i++) {
+        scanf("%d", &pages[i]);
+    }
+
+    printf("Enter the number of frames: ");
+    scanf("%d", &frameSize);
+
+    int frames[100] = {0};
+    for (int i = 0; i < frameSize; i++) {
+        frames[i] = -1;
+    }
+
+    FCFS(pages, n, frames, frameSize);
+    LRU(pages, n, frames, frameSize);
+    Optimal(pages, n, frames, frameSize);
+
+    return 0;
+}
