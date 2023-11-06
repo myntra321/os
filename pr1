@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# Echo Command
+echo "Hello, World!"
+
+# List files and directories
+echo "List of files and directories:"
+ls
+
+# Read user input
+echo "Enter your name: "
+read name
+echo "Hello, $name!"
+
+# Create a new file
+touch newfile.txt
+echo "Created a new file: newfile.txt"
+
+# Conditional Tests
+if [ 5 -lt 10 ]; then
+    echo "5 is less than 10"
+fi
+
+# For Loop
+echo "Using a for loop:"
+for i in {1..5}; do
+    echo "Iteration $i"
+done
+
+# While Loop
+echo "Using a while loop:"
+count=1
+while [ $count -le 5 ]; do
+    echo "Iteration $count"
+    count=$((count + 1))
+done
+
+# Arithmetic Operations
+result=$((5 + 3))
+echo "5 + 3 = $result"
+
+# Conditional Statements
+age=18
+if [ $age -lt 18 ]; then
+    echo "You are a minor."
+elif [ $age -eq 18 ]; then
+    echo "You just turned 18!"
+else
+    echo "You are an adult."
+fi
+
+# Grep Command
+echo "Searching for 'Hello' in this script:"
+grep "Hello" $0
+
+# Sed Command
+echo "Modifying this script to replace 'World' with 'Universe':"
+sed -i 's/World/Universe/g' $0
+
+echo "Script modified. Goodbye, World!"
